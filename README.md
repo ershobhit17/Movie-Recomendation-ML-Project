@@ -1,3 +1,5 @@
+#Live Link - https://movie-recomendation-ml-project.onrender.com
+
 # 🎬 CineMatch — Intelligent Movie Recommendation System
 
 An end-to-end Machine Learning web application that delivers content-based movie recommendations using **Natural Language Processing (NLP)**, **TF-IDF Vectorization**, and **Cosine Similarity**. Recommends mathematically similar films based on narrative themes, genres, and motifs, securely enriched with live metadata, posters, and IMDb ratings from the **OMDb API**.
