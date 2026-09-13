@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: cinematch-movie-recommender
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OMDB_BASE_URL
+        value: https://www.omdbapi.com/
+      - key: OMDB_API_KEY
+        sync: false

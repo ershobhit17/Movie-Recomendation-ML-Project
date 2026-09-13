@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CineMatch — AI & Content-Based Movie Recommendation System powered by TF-IDF, Cosine Similarity, and live OMDb metadata."
+    />
+    <title>CineMatch — Intelligent Movie Recommender</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    
+    <link rel="stylesheet" href="/static/style.css?v=2.2" />
+  </head>
+  <body>
+    <!-- Main Shell -->
+    <div class="app-container">
+      <!-- Navbar -->
+      <header class="navbar">
+        <div class="nav-brand">
+          <div class="brand-symbol">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="4"></rect>
+              <line x1="7" y1="2" x2="7" y2="22"></line>
+              <line x1="17" y1="2" x2="17" y2="22"></line>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <line x1="2" y1="7" x2="7" y2="7"></line>
+              <line x1="2" y1="17" x2="7" y2="17"></line>
+              <line x1="17" y1="17" x2="22" y2="17"></line>
+              <line x1="17" y1="7" x2="22" y2="7"></line>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">CINE<span>MATCH</span></span>
+            <span class="brand-tagline">SMART FILM DISCOVERY</span>
+          </div>
+        </div>
+
+        <div class="nav-status">
+          <div class="status-pill" id="catalog-pill">
+            <span class="status-dot"></span>
+            <span id="catalog-status-text">Loading catalog...</span>
+          </div>
+          <div class="status-pill omdb-pill" id="omdb-pill" title="Live movie posters & ratings active">
+            <span class="omdb-icon">🍿</span>
+            <span id="omdb-status-text">OMDb Active</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Hero Section -->
+      <main>
+        <section class="hero-section">
+          <div class="hero-badge">
+            <span class="spark-icon">✦</span>
+            <span>SMART MOVIE MATCHER</span>
+          </div>
+          
+          <h1 class="hero-heading">
+            Movies that feel like <span class="highlight">your favourites</span>.
+          </h1>
+          
+          <p class="hero-subheading">
+            Enter a film you love. CineMatch explores similar plots, genres, and vibes to uncover your next favourite movie.
+          </p>
+
+          <!-- Search Form & Autocomplete -->
+          <div class="search-box-card">
+            <div class="search-input-wrapper">
+              <div class="search-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+              <input
+                type="text"
+                id="movie-input"
+                placeholder="Search any title (e.g. Inception, Interstellar, Parasite...)"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="button" id="clear-search-btn" class="clear-btn" aria-label="Clear input" hidden>&times;</button>
+              <button type="button" id="search-btn" class="search-submit-btn">
+                <span>Recommend</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Autocomplete suggestions dropdown -->
+            <div id="suggestions-dropdown" class="suggestions-dropdown" role="listbox" hidden></div>
+          </div>
+
+          <!-- Quick Discovery Chips -->
+          <div class="quick-discovery">
+            <span class="quick-label">POPULAR PICKS:</span>
+            <div class="chips-container" id="chips-container">
+              <button class="chip" data-title="Inception">🌀 Inception</button>
+              <button class="chip" data-title="Interstellar">🚀 Interstellar</button>
+              <button class="chip" data-title="The Dark Knight">🦇 The Dark Knight</button>
+              <button class="chip" data-title="Parasite">🎭 Parasite</button>
+              <button class="chip" data-title="Spirited Away">🏮 Spirited Away</button>
+              <button class="chip" data-title="Dune">🏜️ Dune</button>
+              <button class="chip" data-title="The Matrix">🕶️ The Matrix</button>
+              <button class="chip" data-title="Whiplash">🥁 Whiplash</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recommendations Container -->
+        <section id="results-section" class="results-section" hidden>
+          <!-- Results Header & Seed Summary -->
+          <div class="results-header">
+            <div class="results-title-group">
+              <div class="seed-indicator">
+                <span class="seed-dot"></span>
+                <span class="seed-label">ANALYZED SEED</span>
+              </div>
+              <h2 class="results-title">
+                Because you liked <span id="seed-title-display">Inception</span>
+              </h2>
+              <p class="results-stats" id="results-stats">
+                Finding movies with the same vibe...
+              </p>
+            </div>
+            
+            <div class="results-controls">
+              <div class="limit-selector-group">
+                <label for="limit-select">Show:</label>
+                <select id="limit-select">
+                  <option value="6" selected>6 movies</option>
+                  <option value="9">9 movies</option>
+                  <option value="12">12 movies</option>
+                </select>
+              </div>
+              <button id="reset-results-btn" class="secondary-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                </svg>
+                New Search
+              </button>
+            </div>
+          </div>
+
+          <!-- Movie Cards Grid -->
+          <div id="movie-grid" class="movie-grid"></div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="footer-left">
+          <p>
+            <strong>CineMatch</strong> — Personalized movie recommendations tailored to your taste.
+          </p>
+          <p class="footer-subtext">
+            Intelligent film discovery enriched with live ratings and posters from OMDb.
+          </p>
+        </div>
+        <div class="footer-palette">
+          <span class="palette-swatch" style="background: #E9F5EA;" title="#E9F5EA - Canvas Mint"></span>
+          <span class="palette-swatch" style="background: #A6D7A8;" title="#A6D7A8 - Soft Sage"></span>
+          <span class="palette-swatch" style="background: #66BC6A;" title="#66BC6A - Leaf Emerald"></span>
+          <span class="palette-swatch" style="background: #145E1A;" title="#145E1A - Deep Forest"></span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Movie Detail Modal -->
+    <div id="movie-modal" class="modal-overlay" hidden>
+      <div class="modal-backdrop"></div>
+      <div class="modal-dialog">
+        <button id="modal-close-btn" class="modal-close-btn" aria-label="Close modal">&times;</button>
+        <div class="modal-content" id="modal-content">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <script src="/static/app.js?v=2.2"></script>
+  </body>
+</html>
